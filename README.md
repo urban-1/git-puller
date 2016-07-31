@@ -21,8 +21,8 @@ handle a few more complex cases that would normally require a human:
     checkout again the previous HEAD's commit
 
 1.  Allow the local repository to be *ahead* of the remote one. This can happen
-    in few cases including: (1) Editing and committing but not pushing to remote
-    (on the local repo) and (2) Manually rolling-back a specific branch.
+    in few cases including: (1) Editing and committing on the local repo but not
+    pushing to remote and (2) Manually rolling-back the branch we are tracking.
     
 Additionally, `git-puller` has the following features:
 

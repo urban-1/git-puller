@@ -16,15 +16,23 @@ shopt -s extglob
 MAILER=/usr/sbin/sendmail
 
 # False to stop sending emails
+# to the dev team
 SEND_UPDATE_MAILS=1
 
 # False to stop sending ERROR mails
+# to the dev team
 SEND_ERROR_MAILS=1
 
+# The team maintaining this script to receive usage/success/failure reports
+DEV_TEAM_MAIL=""
+
+# How to log date?
 DATE_FORMAT="%d/%m/%Y %H:%M:%S"
 
+# Default logging level
 LOG_LEVEL=10
 
+# Key to use when cloning
 KEY_FILE=~/.ssh/id_rsa
 
 export GIT_SSH_COMMAND="ssh -i $KEY_FILE -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
@@ -150,6 +158,44 @@ function rwarn(){
     fi
     repo_warnings[$1]="${repo_warnings[$1]}$2"
     warn "$2"
+}
+
+function errors_to_bullet(){
+    repoName=$1
+    
+    OIFS=$IFS
+    ret=""
+    if [ "${repo_errors[$repoName]}" != "" ]; then
+        ret="The following error(s) occured:\n"
+        IFS=':' 
+        for e in ${repo_errors[$repoName]}
+        do
+            ret="$ret  - $e\n"
+        done
+        IFS=$OIFS
+    fi
+    
+    echo -en "$ret"
+}
+
+
+function warn_to_bullet(){
+    repoName=$1
+    
+    OIFS=$IFS
+    ret=""
+    if [ "${repo_warnings[$repoName]}" != "" ]; then
+        ret="The following warning(s) occured:\n"
+        
+        IFS=':' 
+        for wa in ${repo_warnings[$repoName]}
+        do
+            ret="$ret  - $wa\n"
+        done
+        IFS=$OIFS
+    fi
+    
+    echo -en "$ret"
 }
 
 function handle_repo(){
@@ -391,31 +437,12 @@ do
     info "Handing repo config '$c'"
     handle_repo "$c"
     repoName=`basename $c ".conf"`
-    # Notify ppl
-    msg=""
-    OIFS=$IFS
-    if [ "${repo_errors[$repoName]}" != "" ]; then
-        msg="\nThe following error(s) occured:\n"
-        IFS=':' 
-        for e in ${repo_errors[$repoName]}
-        do
-            msg="$msg  - $e\n"
-        done
-        IFS=$OIFS
-    fi
+    # Notify ppl for this repo
+    errstr="$(errors_to_bullet $repoName)"
+    warnstr="$(warn_to_bullet $repoName)"
     
-    if [ "${repo_warnings[$repoName]}" != "" ]; then
-        msg="$msg\nThe following warning(s) occured:\n"
-        
-        IFS=':' 
-        for wa in ${repo_warnings[$repoName]}
-        do
-            msg="$msg  - $wa\n"
-        done
-        IFS=$OIFS
-    fi
     
-    if [ "$msg" != "" ];then
+    if [ "$errstr$warnstr" != "" ];then
         declare -A cfg
         read_config "$c"
         
@@ -423,7 +450,7 @@ do
         if [ "$branch" == "" ]; then
             branch="master"
         fi
-        msg="\nMessage from git-puller: While running for $(hostname)${cfg[LOCAL_TREE]}, branch '$branch'\n$msg"
+        msg="\nMessage from git-puller: While running for $(hostname)${cfg[LOCAL_TREE]}, branch '$branch'\n\n$errstr\n\n$warnstr"
         
         if [ "${cfg[REPORT_TO]}" != "" ] && [ "$MAILER" != "" ]; then
             info "Reporting via email"

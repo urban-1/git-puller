@@ -28,3 +28,7 @@ Additionally, `git-puller` has the following features:
 
 -   Post-pull script
 -   Email notifications
+
+## DISCLAIMER ##
+
+**This has never been used on production and is considered alpha... use at your own risk.**

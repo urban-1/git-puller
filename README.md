@@ -2,16 +2,17 @@
 
 Multi-repo, configuration based unattended git-pull like behavior.
 
-A tool for releasing software using git. `git-puller` performs a `git pull` on
-each local git repository configured in order to bring it up to date with a 
+A tool for releasing software using git which supports multiple local 
+repositories. `git-puller` performs a `git pull` on
+each local git repository configured in order to bring it up-to-date with a 
 specific remote branch. It is mainly intended to run via cron and thus it can
 handle a few more complex cases that would normally require a human:
 
-1.  Check for modified or new files in the development 
-    This should not really happen given that the target tree is not a development
-    tree. However, in such cases `git-puller` will stash any changes.
+1.  Check for modified or new files in the local tree. This should not really 
+    happen given that the target tree is not a development tree. However, in 
+    such cases `git-puller` will stash any changes.
     
-1.  Automatically roll-back to the previous state if/when a merge does bad
+1.  Automatically roll-back to the previous state if/when a merge goes bad
     and there are conflicts that need to be resolved.
     
 1.  Handle repositories that are in the wrong branch or detached head. This
@@ -26,8 +27,10 @@ handle a few more complex cases that would normally require a human:
     
 Additionally, `git-puller` has the following features:
 
--   Post-pull script
--   Email notifications
+-   Post-pull script: This can be used to update configuration that is not checked
+    in the main repository, notify people for the release or ensure correct
+    permissions for other teams/groups to edit
+-   Email notifications for any warnings or errors detected on a per-repo basis
 
 
 ## Usage ##

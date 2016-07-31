@@ -61,11 +61,15 @@ function prt(){
 function debug(){ prt 10 "$1"; }
 function info() { prt 20 "$1"; }
 function warn() { prt 30 "$1"; }
-function error(){ prt 40 "$1"; }
+function error(){ prt 42 "$1"; }
 
 function usage(){
     echo ""
-    echo "Usage: $0 [config]"
+    echo "Usage: $0 [options] -c <config>"
+    echo ""
+    echo " Options:"
+    echo "       -e    Do not send emails (disables mailer if configured)"
+    echo "       -l    Message level (10=DEBUG, INFO=20, WARN=30 and ERROR=42 :))"
     echo ""
 }
 
@@ -84,7 +88,6 @@ function read_config(){
             
             # Declare (global)
             cfg[$lhs]=$rhs
-            debug "   - Declaring $lhs=$rhs"
         fi
     done < <(tr -d '\r' < $configfile)
 }
@@ -156,7 +159,7 @@ function handle_repo(){
     declare -A cfg
     read_config "$1"
     repoConfig=$1
-    repoName=`basename "$1"`
+    repoName=`basename "$1" ".conf"`
     
     # Shorthand for cd ... && 
     function cdgit() { cd ${cfg[LOCAL_TREE]}; }
@@ -186,6 +189,10 @@ function handle_repo(){
     
         info "Cloning remote ${cfg[REMOTE_URI]} to ${cfg[LOCAL_TREE]}"
         git clone ${cfg[REMOTE_URI]} ${cfg[LOCAL_TREE]}
+        if [ $? -ne 0 ]; then
+            rerror $repoName "Failed to clone remote!"
+            return
+        fi
     fi
     
     # ensure git
@@ -339,24 +346,37 @@ function handle_repo(){
     
 }
 
-while getopts ":c:" opt; do
+while getopts ":c:l:e" opt; do
     case $opt in
-        c)
-            config=$OPTARG 
+        c) config=$OPTARG ;;
+        l) LOG_LEVEL=$OPTARG ;;
+        e) 
+            info "Not sending emails"
+            MAILER=""
         ;;
         h)
             usage
+            exit 0
         ;;
-        \?)  usage ;;
+        \?)
+            usage
+            exit 1
+        ;;
     esac
 done
 
 shift $(($OPTIND - 1))
-for c in $config/*
+
+if [ ! -d $config ]; then
+    error "Oooops: Configuration directory... is not actually a directory"
+    exit 1
+fi
+
+for c in $config/*.conf
 do
     info "Handing repo config '$c'"
     handle_repo "$c"
-    repoName=`basename $c`
+    repoName=`basename $c ".conf"`
     # Notify ppl
     msg=""
     OIFS=$IFS

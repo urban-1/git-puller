@@ -29,6 +29,28 @@ Additionally, `git-puller` has the following features:
 -   Post-pull script
 -   Email notifications
 
+
+## Usage ##
+
+    $ ./puller.sh -h
+
+    Usage: ./puller.sh [options] -c <config>
+
+    Options:
+        -e    Do not send emails (disables mailer if configured)
+        -l    Message level (10=DEBUG, INFO=20, WARN=30 and ERROR=42 :))
+
+
+
+## Configuration  ##
+
+`git-puller` will read every file in the configuration directory that ends with
+`.conf`. Therefore, if you need to disable a repo, change or remove the extension.
+
+Now, each configuration file can have the following:
+
+TODO: :) See .sample
+
 ## DISCLAIMER ##
 
 **This has never been used on production and is considered alpha... use at your own risk.**

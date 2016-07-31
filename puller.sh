@@ -201,6 +201,19 @@ function handle_repo(){
         return
     fi
     
+    
+    #
+    # If here, we are all good to go with GIT checks! So update
+    #
+    info "Fetching"
+    (cdgit && git fetch ${cfg[REMOTE_NAME]})
+    (cdgit && git fetch ${cfg[REMOTE_NAME]} --tags)
+    
+    # Get changes
+    remoteFull="${cfg[REMOTE_NAME]}/${cfg[REMOTE_BRANCH]}"
+    IFS=',' read -r ahead behind <<<`git_distance ${cfg[LOCAL_TREE]} HEAD "$remoteFull"`
+    info "Your current HEAD is $ahead ahead and $behind behind the remote $remoteFull"
+    
     # Check for new files
     untracked=`git_untracked "${cfg[LOCAL_TREE]}"`
     if [ $untracked -ne 0 ]; then
@@ -239,6 +252,12 @@ function handle_repo(){
             return
         fi
         
+        # Avoid pointless checkout
+        if [ $(($ahead + $behind)) -eq 0 ]; then 
+            info "Seems you are spot on! ... Just on different branch! Not updating anything"
+            return
+        fi
+        
         # Fix detached
         warn "Fixing HEAD"
         oldBranch=$(cdgit && git rev-parse --verify HEAD)
@@ -254,6 +273,12 @@ function handle_repo(){
             return
         fi
         
+        # Avoid pointless checkout
+        if [ $(($ahead + $behind)) -eq 0 ]; then 
+            info "Seems you are spot on! ... Just on different branch! Not updating anything"
+            return
+        fi
+        
         # Fix detached
         warn "Changing branch"
         oldBranch=$branch
@@ -262,17 +287,6 @@ function handle_repo(){
         info "(2nd) Your local branch is '$branch'"
     fi
     
-    #
-    # If here, we are all good to go! So update
-    #
-    info "Fetching"
-    (cdgit && git fetch ${cfg[REMOTE_NAME]})
-    (cdgit && git fetch ${cfg[REMOTE_NAME]} --tags)
-    
-    # Get changes
-    remoteFull="${cfg[REMOTE_NAME]}/${cfg[REMOTE_BRANCH]}"
-    IFS=',' read -r ahead behind <<<`git_distance ${cfg[LOCAL_TREE]} HEAD "$remoteFull"`
-    info "Your current HEAD is $ahead ahead and $behind behind the remote $remoteFull"
     
     #
     # Check ahead
@@ -306,7 +320,7 @@ function handle_repo(){
     currentHash=$(cdgit && git rev-parse --verify HEAD)
     info "Your hash atm is: $currentHash"
     
-    (cdgit && git merge "$remoteFull")
+    (cdgit && git merge "$remoteFull" -m "git-puller merging!")
     rc=$?
     if [ $rc -ne 0 ]; then
         rerror $repoName "Merging failed ... reseting HARD to previous HASH"

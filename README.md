@@ -23,3 +23,8 @@ handle a few more complex cases that would normally require a human:
 1.  Allow the local repository to be *ahead* of the remote one. This can happen
     in few cases including: (1) Editing and committing but not pushing to remote
     (on the local repo) and (2) Manually rolling-back a specific branch.
+    
+Additionally, `git-puller` has the following features:
+
+-   Post-pull script
+-   Email notifications

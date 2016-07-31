@@ -42,3 +42,6 @@ DIFFERENT_BRANCH_FIX=1
 # specific version...
 ALLOW_DETACHED_HEAD=0
 
+# A script to run when everything has completed
+POST_SUCCESS=./test/sample-post-puller.sh
+

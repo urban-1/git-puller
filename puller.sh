@@ -133,7 +133,8 @@ function handle_repo(){
     # Cleanup and declare local
     declare -A -l cfg
     read_config "$1"
-    repoName="$1"
+    repoConfig=$1
+    repoName=`basename "$1"`
     
     # Shorthand for cd ... && 
     function cdgit() { cd ${cfg[LOCAL_TREE]}; }
@@ -298,9 +299,21 @@ function handle_repo(){
         (cdgit && git push ${cfg[REMOTE_NAME]} ${cfg[REMOTE_BRANCH]})
     fi
     
+    # Check back to the old hash/branch if any
     if [ "$oldBranch" != "" ]; then
         info "Checking back to $oldBranch"
         (cdgit && git checkout "$oldBranch")
+    fi
+    
+    # Run post-script
+    if [ "${cfg[POST_SUCCESS]}" != "" ]; then
+        if [ -x ${cfg[POST_SUCCESS]} ]; then
+            # Arguments: config
+            debug "Running Post-script ${cfg[POST_SUCCESS]}"
+            ${cfg[POST_SUCCESS]} "$repoConfig"
+        else
+            warn "Configuration error - wrong postscript"
+        fi
     fi
     
 }

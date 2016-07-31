@@ -21,6 +21,7 @@ THIRD_REMOTE=`(cd $RR && git rev-parse --verify HEAD)`
 # Basic tests
 #
 
+sed -i 's|MAILER=/usr/sbin/sendmail|MAILER=|g' ./puller.sh
 echo -e "\n\n 1. --- TEST CREATE ------------------------"
 # 1. Test creation
 ./puller.sh -c ./test
@@ -30,7 +31,6 @@ echo -e "\n\n 2. --- DETACHED HEAD DENY -----------------"
 (cd $RL && git checkout HEAD^1)
 ./puller.sh -c ./test
 
-exit 1
 
 echo -e "\n\n 3. --- DETACHED HEAD ALLOW ----------------"
 sed -i 's/ALLOW_DETACHED_HEAD=0/ALLOW_DETACHED_HEAD=1/g' ./test/tmp-repo
@@ -100,5 +100,6 @@ sed -i 's/AHEAD_POLICY="rollback"/AHEAD_POLICY="push"/g' ./test/tmp-repo
 ./puller.sh -c ./test
 sed -i 's/AHEAD_POLICY="push"/AHEAD_POLICY="rollback"/g' ./test/tmp-repo
 
+sed -i 's|MAILER=|MAILER=/usr/sbin/sendmail|g' ./puller.sh
 exit 0
 

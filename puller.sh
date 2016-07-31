@@ -13,7 +13,7 @@ shopt -s extglob
 #
 
 # Mailer
-MAILER=/usr/sbin/sendmail-fake
+MAILER=/usr/sbin/sendmail
 
 # False to stop sending emails
 SEND_UPDATE_MAILS=1
@@ -384,15 +384,17 @@ do
     if [ "$msg" != "" ];then
         declare -A cfg
         read_config "$c"
-        if [ "${cfg[REPORT_TO]}" != "" ]; then
+        
+        branch=${cfg[LOCAL_BRANCH]}
+        if [ "$branch" == "" ]; then
+            branch="master"
+        fi
+        msg="\nMessage from git-puller: While running for $(hostname)${cfg[LOCAL_TREE]}, branch '$branch'\n$msg"
+        
+        if [ "${cfg[REPORT_TO]}" != "" ] && [ "$MAILER" != "" ]; then
             info "Reporting via email"
-            branch=${cfg[LOCAL_BRANCH]}
-            if [ "$branch" == "" ]; then
-                branch="master"
-            fi
-            msg="\nMessage from git-puller: While running for $(hostname)${cfg[LOCAL_TREE]}, branch '$branch'\n$msg"
             
-            echo -e "Subject: git-puller reporting for '$repoName'\r\n$msg" | $MAILER "${cfg[REPORT_TO]}"
+            echo -e "Subject: git-puller reporting for '$repoName'\r\nFrom:git-puller <Do.Not.Reply@git-puller.com>\r\nTo:${cfg[REPORT_TO]}\n\r$msg" | $MAILER "${cfg[REPORT_TO]}"
         fi
     fi
     

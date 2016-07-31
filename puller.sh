@@ -13,7 +13,7 @@ shopt -s extglob
 #
 
 # Mailer
-MAILER=/usr/bin/sendmail
+MAILER=/usr/sbin/sendmail-fake
 
 # False to stop sending emails
 SEND_UPDATE_MAILS=1
@@ -39,6 +39,7 @@ export GIT_SSH_COMMAND="ssh -i $KEY_FILE -o UserKnownHostsFile=/dev/null -o Stri
 config="/etc/git-puller"
 
 declare -A repo_errors
+declare -A repo_warnings
 
 function prt(){
     lvl="???"
@@ -70,6 +71,7 @@ function usage(){
 
 function read_config(){
     # set the actual path name of your (DOS or Unix) config file
+    local configfile
     configfile=$1
     
     while IFS='= ' read lhs rhs
@@ -127,11 +129,31 @@ function git_new() {
     echo "$(cd $1 && git status --porcelain 2>/dev/null| grep "^A" | wc -l)"
 }
 
+# Repo error, log and store
+# indexed by repoName ($1)
+function rerror(){
+    if [ "${repo_errors[$1]}" != "" ]; then
+        repo_errors[$1]="${repo_errors[$1]}:"
+    fi
+    repo_errors[$1]="${repo_errors[$1]}$2"
+    error "$2"
+}
+
+# Repo warning, log and store
+# indexed by repoName ($1)
+function rwarn(){
+    if [ "${repo_warnings[$1]}" != "" ]; then
+        repo_warnings[$1]="${repo_warnings[$1]}:"
+    fi
+    repo_warnings[$1]="${repo_warnings[$1]}$2"
+    warn "$2"
+}
+
 function handle_repo(){
     # get $1 as array
     
     # Cleanup and declare local
-    declare -A -l cfg
+    declare -A cfg
     read_config "$1"
     repoConfig=$1
     repoName=`basename "$1"`
@@ -158,9 +180,7 @@ function handle_repo(){
     # Check and create?
     if [ ! -d "${cfg[LOCAL_TREE]}" ]; then
         if  [ "${cfg[REMOTE_URI]}" == "" ]; then
-            tmpmsg="Remote is not set and local does not exist - cannot clone"
-            repo_errors["$repoName"]=$tmpmsg
-            error "$tmpmsg"
+            rerror $repoName "Remote is not set and local does not exist - cannot clone"
             return
         fi
     
@@ -170,7 +190,7 @@ function handle_repo(){
     
     # ensure git
     if [ ! -d "${cfg[LOCAL_TREE]}/.git" ]; then
-        error "Folder exists (${cfg[LOCAL_TREE]}) but does not appear to be a git repo"
+        rerror $repoName "Folder exists (${cfg[LOCAL_TREE]}) but does not appear to be a git repo"
         return
     fi
     
@@ -178,10 +198,10 @@ function handle_repo(){
     untracked=`git_untracked "${cfg[LOCAL_TREE]}"`
     if [ $untracked -ne 0 ]; then
         if [ ${cfg[ALLOW_UNTRACKED]} -ne 1 ]; then
-            error "Config does not allow untracked"
+            rerror $repoName "Config does not allow untracked"
             return
         else
-            warn "Ignoring $untracked untracked files"
+            rwarn $repoName "Ignoring $untracked untracked files"
         fi
     fi
     
@@ -191,12 +211,12 @@ function handle_repo(){
     dirty=$(($added+$uncom))
     if [ $dirty -ne 0 ]; then
         if [ ${cfg[ALLOW_DIRTY]} -ne 1 ]; then
-            error "Your local tree is DIRTY with $uncom uncommited changes and $added new files - and this is not allowed..."
+            rerror $repoName "Your local tree is DIRTY with $uncom uncommited changes and $added new files - and this is not allowed..."
             return
         fi
-        warn "Dirty local tree with $uncom uncommited changes and $added new files"
+        rwarn $repoName "Dirty local tree with $uncom uncommited changes and $added new files - Stashing"
         (cdgit && git stash)
-        warn "Changes stashed"
+        info "Changes stashed"
         
     fi
     
@@ -206,9 +226,9 @@ function handle_repo(){
     info "(1st) Your local branch is '$branch'"
     
     if [ "$branch" == "(detached)" ]; then
-        warn "Detached head has been detected"
+        rwarn $repoName "Detached head has been detected"
         if [ ${cfg[ALLOW_DETACHED_HEAD]} -ne 1 ]; then
-            error "Detached head is not allowed... exiting"
+            rerror $repoName "Detached head is not allowed... exiting"
             return
         fi
         
@@ -221,9 +241,9 @@ function handle_repo(){
     fi
     
     if [ "$branch" != "${cfg[LOCAL_BRANCH]}" ]; then
-        warn "Local branch mismatch - different one checked-out"
+        rwarn $repoName "Local branch mismatch - different one checked-out"
         if [ ${cfg[ALLOW_DIFFERENT_BRANCH]} -ne 1 ]; then
-            error "Different branch is not allowed... exiting"
+            rerror $repoName "Different branch is not allowed... exiting"
             return
         fi
         
@@ -238,6 +258,7 @@ function handle_repo(){
     #
     # If here, we are all good to go! So update
     #
+    info "Fetching"
     (cdgit && git fetch ${cfg[REMOTE_NAME]})
     (cdgit && git fetch ${cfg[REMOTE_NAME]} --tags)
     
@@ -252,7 +273,7 @@ function handle_repo(){
     if [ $ahead -gt 0 ]; then
         
         if [ ${cfg[ALLOW_AHEAD]} -ne 1 ]; then
-            error "Your local branch is ahead and this is not allowed inconfig"
+            rerror $repoName "Your local branch is ahead and this is not allowed inconfig"
             return
         fi
         
@@ -263,7 +284,7 @@ function handle_repo(){
             #   - 1. We are indded ahead due to commits
             #   - 2. Someone rolled back the remote!
             
-            error "Someone rolled back the remote branch... we are following"
+            rwarn $repoName "Someone rolled back the remote branch... we are following"
             dt=`date +"%Y%m%d%H%M%S"`
             info "   - Creating branch: rollback-$dt"
             (cdgit && git branch "rollback-$dt")
@@ -281,7 +302,7 @@ function handle_repo(){
     (cdgit && git merge "$remoteFull")
     rc=$?
     if [ $rc -ne 0 ]; then
-        warn "Merging failed ... reseting HARD to previous HASH"
+        rerror $repoName "Merging failed ... reseting HARD to previous HASH"
         (cdgit && git merge --abort)
         # The following is the same!
         # (cdgit && git reset --hard $currentHash)
@@ -295,7 +316,7 @@ function handle_repo(){
     currentHash=$(cdgit && git rev-parse --verify HEAD)
     currentRemote=$(cdgit && git rev-parse --verify $remoteFull)
     if [ "$currentHash" != "$currentRemote" ]; then
-        warn "We are ahead! Pushing to remote"
+        rwarn $repoName "We are ahead! Pushing to remote"
         (cdgit && git push ${cfg[REMOTE_NAME]} ${cfg[REMOTE_BRANCH]})
     fi
     
@@ -312,7 +333,7 @@ function handle_repo(){
             debug "Running Post-script ${cfg[POST_SUCCESS]}"
             ${cfg[POST_SUCCESS]} "$repoConfig"
         else
-            warn "Configuration error - wrong postscript"
+            rwarn $repoName "Configuration error - wrong postscript"
         fi
     fi
     
@@ -331,13 +352,53 @@ while getopts ":c:" opt; do
 done
 
 shift $(($OPTIND - 1))
-
 for c in $config/*
 do
-        info "Handing repo config '$c'"
-        handle_repo "$c"
+    info "Handing repo config '$c'"
+    handle_repo "$c"
+    repoName=`basename $c`
+    # Notify ppl
+    msg=""
+    OIFS=$IFS
+    if [ "${repo_errors[$repoName]}" != "" ]; then
+        msg="\nThe following error(s) occured:\n"
+        IFS=':' 
+        for e in ${repo_errors[$repoName]}
+        do
+            msg="$msg  - $e\n"
+        done
+        IFS=$OIFS
+    fi
+    
+    if [ "${repo_warnings[$repoName]}" != "" ]; then
+        msg="$msg\nThe following warning(s) occured:\n"
         
+        IFS=':' 
+        for wa in ${repo_warnings[$repoName]}
+        do
+            msg="$msg  - $wa\n"
+        done
+        IFS=$OIFS
+    fi
+    
+    if [ "$msg" != "" ];then
+        declare -A cfg
+        read_config "$c"
+        if [ "${cfg[REPORT_TO]}" != "" ]; then
+            info "Reporting via email"
+            branch=${cfg[LOCAL_BRANCH]}
+            if [ "$branch" == "" ]; then
+                branch="master"
+            fi
+            msg="\nMessage from git-puller: While running for $(hostname)${cfg[LOCAL_TREE]}, branch '$branch'\n$msg"
+            
+            echo -e "Subject: git-puller reporting for '$repoName'\r\n$msg" | $MAILER "${cfg[REPORT_TO]}"
+        fi
+    fi
+    
+    echo -e "$msg"
 done
+
 
 exit 0
 

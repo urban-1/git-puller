@@ -9,12 +9,12 @@ REMOTE_URI="ssh://localhost:22/tmp/tmp-remote"
 REMOTE_NAME="origin"
 
 # The remote we are tracking (default master)
-REMOTE_BRANCH="master"
+REMOTE_BRANCH=""
 # The local branch (default master)
 LOCAL_BRANCH=""
 
 # Comma separate list of users to email...
-REPORT_TO="bodozoglou@gmail.com"
+REPORT_TO=""
 
 # Stash local changes
 ALLOW_DIRTY=0
@@ -43,5 +43,5 @@ DIFFERENT_BRANCH_FIX=1
 ALLOW_DETACHED_HEAD=0
 
 # A script to run when everything has completed
-POST_SUCCESS=./test/sample-post-puller.sh
+POST_SUCCESS=./sample-post-puller.sh
 

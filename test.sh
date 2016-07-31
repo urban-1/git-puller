@@ -4,26 +4,22 @@ TMP=/tmp
 RL=$TMP/tmp-repo
 RR=$TMP/tmp-remote
 
-#
-# Basic tests
-#
-
-
-function create_remote(){
-    # Create remote
-    mkdir -p $RR
-    (cd $RR && git init)
-    (cd $RR && echo "TEST" > f1 && git add ./f1 && git commit -a -m "Initial Commit")
-    (cd $RR && echo "TEST2" > f2 && git add ./f2 && git commit -a -m "Second Commit")
-    (cd $RR && echo "TEST3" > f3 && git add ./f3 && git commit -a -m "Third Commit")
-
-}
-
 # Clean
 rm -rf $RR 2> /dev/null
 rm -rf $RL 2> /dev/null
-create_remote
+
+
+mkdir -p $RR
+(cd $RR && git init)
+(cd $RR && echo "TEST" > f1 && git add ./f1 && git commit -a -m "Initial Commit")
+(cd $RR && echo "TEST2" > f2 && git add ./f2 && git commit -a -m "Second Commit")
+(cd $RR && echo "TEST3" > f3 && git add ./f3 && git commit -a -m "Third Commit")
 THIRD_REMOTE=`(cd $RR && git rev-parse --verify HEAD)`
+
+
+#
+# Basic tests
+#
 
 echo -e "\n\n 1. --- TEST CREATE ------------------------"
 # 1. Test creation
@@ -34,6 +30,7 @@ echo -e "\n\n 2. --- DETACHED HEAD DENY -----------------"
 (cd $RL && git checkout HEAD^1)
 ./puller.sh -c ./test
 
+exit 1
 
 echo -e "\n\n 3. --- DETACHED HEAD ALLOW ----------------"
 sed -i 's/ALLOW_DETACHED_HEAD=0/ALLOW_DETACHED_HEAD=1/g' ./test/tmp-repo

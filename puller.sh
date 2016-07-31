@@ -200,6 +200,7 @@ function handle_repo(){
     fi
     
     # Get current branch
+    oldBranch=""
     branch=$(cdgit && git_current_brach)
     info "(1st) Your local branch is '$branch'"
     
@@ -212,6 +213,7 @@ function handle_repo(){
         
         # Fix detached
         warn "Fixing HEAD"
+        oldBranch=$(cdgit && git rev-parse --verify HEAD)
         (cdgit && git checkout ${cfg[LOCAL_BRANCH]})
         branch=$(cdgit && git_current_brach)
         info "(2nd) Your local branch is '$branch'"
@@ -226,6 +228,7 @@ function handle_repo(){
         
         # Fix detached
         warn "Changing branch"
+        oldBranch=$branch
         (cdgit && git checkout ${cfg[LOCAL_BRANCH]})
         branch=$(cdgit && git_current_brach)
         info "(2nd) Your local branch is '$branch'"
@@ -264,6 +267,7 @@ function handle_repo(){
             info "   - Creating branch: rollback-$dt"
             (cdgit && git branch "rollback-$dt")
             (cdgit && git reset --hard "$remoteFull")
+            return
         fi
     fi
     
@@ -292,6 +296,11 @@ function handle_repo(){
     if [ "$currentHash" != "$currentRemote" ]; then
         warn "We are ahead! Pushing to remote"
         (cdgit && git push ${cfg[REMOTE_NAME]} ${cfg[REMOTE_BRANCH]})
+    fi
+    
+    if [ "$oldBranch" != "" ]; then
+        info "Checking back to $oldBranch"
+        (cdgit && git checkout "$oldBranch")
     fi
     
 }

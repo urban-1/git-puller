@@ -1,2 +1,3 @@
 test/tmp-repo.conf
 puller-config.sh
+git-puller.d

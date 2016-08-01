@@ -68,6 +68,7 @@ function read_config(){
             
             # Declare (global)
             cfg[$lhs]=$rhs
+            # debug "   - Declaring cfg[$lhs]=$rhs"
         fi
     done < <(tr -d '\r' < $configfile)
 }
@@ -223,9 +224,9 @@ function handle_repo(){
     #
     # If here, we are all good to go with GIT checks! So update
     #
-    info "Fetching"
-    (cdgit && git fetch ${cfg[REMOTE_NAME]})
-    (cdgit && git fetch ${cfg[REMOTE_NAME]} --tags)
+    info "Fetching ${cfg[REMOTE_NAME]} "
+    (cdgit && git fetch ${cfg[REMOTE_NAME]} > /dev/null 2>&1 )
+    (cdgit && git fetch ${cfg[REMOTE_NAME]} --tags > /dev/null 2>&1)
     
     # Get changes
     remoteFull="${cfg[REMOTE_NAME]}/${cfg[REMOTE_BRANCH]}"
@@ -365,11 +366,15 @@ function handle_repo(){
         (cdgit && git checkout "$oldBranch")
     fi
     
-    # Run post-script
-    if [ "${cfg[POST_SUCCESS]}" != "" ]; then
+    # 
+    # Run post-script if:
+    #  1. Is there
+    #  2. We did a merge...
+    #  
+    if [ "${cfg[POST_SUCCESS]}" != "" ] && [ $behind -ne 0 ]; then
         if [ -x ${cfg[POST_SUCCESS]} ]; then
             # Arguments: config
-            debug "Running Post-script ${cfg[POST_SUCCESS]}"
+            info "Running Post-script ${cfg[POST_SUCCESS]}"
             ${cfg[POST_SUCCESS]} "$repoConfig"
         else
             rwarn $repoName "Configuration error - wrong postscript"
@@ -415,8 +420,7 @@ do
     
     
     if [ "$errstr$warnstr" != "" ];then
-        info "There were warnings or errors"
-        
+
         declare -A cfg
         read_config "$c"
         
@@ -424,7 +428,16 @@ do
         if [ "$branch" == "" ]; then
             branch="master"
         fi
-        msg="\nMessage from git-puller: While running for $(hostname)${cfg[LOCAL_TREE]}, branch '$branch'\n\n$errstr\n\n$warnstr"
+        msg="\nMessage from git-puller: While running for $(hostname)${cfg[LOCAL_TREE]}, branch '$branch'\n\n"
+    
+        if [ "$errstr" != "" ]; then
+            msg="$msg$errstr\n\n"
+        fi
+        if [ "$warnstr" != "" ]; then
+            msg="$msg$warnstr\n\n"
+        fi
+        
+        
         
         if [ "${cfg[REPORT_TO]}" != "" ] && [ "$MAILER" != "" ]; then
             info "Reporting via email"

@@ -46,3 +46,4 @@ DIFFERENT_BRANCH_FIX=0
 # A script to run when everything has completed
 POST_SUCCESS=./test/sample-post-puller.sh
 
+# An empty line is needed....

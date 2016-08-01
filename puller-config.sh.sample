@@ -1,0 +1,27 @@
+#!/bin/bash
+# --- CONFIGURATION ---
+# 
+# General configuration for puller utility:
+#
+
+# Mailer
+# MAILER=/usr/sbin/sendmail
+MAILER=(/usr/sbin/sendmail "-C" ~/.ssmtp.conf)
+
+# False to stop sending emails to the dev team
+SEND_UPDATE_MAILS=1
+
+# False to stop sending ERROR mails to the dev team
+SEND_ERROR_MAILS=1
+
+# The team maintaining this script to receive usage/success/failure reports
+DEV_TEAM_MAIL=""
+
+# How to log date?
+DATE_FORMAT="%d/%m/%Y %H:%M:%S"
+
+# Default logging level
+LOG_LEVEL=10
+
+# Key to use when cloning
+KEY_FILE=~/.ssh/id_rsa

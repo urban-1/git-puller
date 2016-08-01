@@ -7,41 +7,13 @@
 
 shopt -s extglob
 
-# --- CONFIGURATION ---
-# 
-# General configuration for puller utility:
-#
+# Source utility config
+DIRNAME=$(readlink -f $(dirname $0))
+. $DIRNAME/puller-config.sh
 
-# Mailer
-MAILER=/usr/sbin/sendmail
 
-# False to stop sending emails
-# to the dev team
-SEND_UPDATE_MAILS=1
-
-# False to stop sending ERROR mails
-# to the dev team
-SEND_ERROR_MAILS=1
-
-# The team maintaining this script to receive usage/success/failure reports
-DEV_TEAM_MAIL=""
-
-# How to log date?
-DATE_FORMAT="%d/%m/%Y %H:%M:%S"
-
-# Default logging level
-LOG_LEVEL=10
-
-# Key to use when cloning
-KEY_FILE=~/.ssh/id_rsa
-
+# Support custom keys for git
 export GIT_SSH_COMMAND="ssh -i $KEY_FILE -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
-
-#
-# --- End of CONFIGURATION ---
-#
-
-
 
 # Generic config folder
 config="/etc/git-puller"
@@ -144,7 +116,7 @@ function git_new() {
 # indexed by repoName ($1)
 function rerror(){
     if [ "${repo_errors[$1]}" != "" ]; then
-        repo_errors[$1]="${repo_errors[$1]}:"
+        repo_errors[$1]="${repo_errors[$1]}|"
     fi
     repo_errors[$1]="${repo_errors[$1]}$2"
     error "$2"
@@ -154,7 +126,7 @@ function rerror(){
 # indexed by repoName ($1)
 function rwarn(){
     if [ "${repo_warnings[$1]}" != "" ]; then
-        repo_warnings[$1]="${repo_warnings[$1]}:"
+        repo_warnings[$1]="${repo_warnings[$1]}|"
     fi
     repo_warnings[$1]="${repo_warnings[$1]}$2"
     warn "$2"
@@ -167,7 +139,7 @@ function errors_to_bullet(){
     ret=""
     if [ "${repo_errors[$repoName]}" != "" ]; then
         ret="The following error(s) occured:\n"
-        IFS=':' 
+        IFS='|' 
         for e in ${repo_errors[$repoName]}
         do
             ret="$ret  - $e\n"
@@ -187,7 +159,7 @@ function warn_to_bullet(){
     if [ "${repo_warnings[$repoName]}" != "" ]; then
         ret="The following warning(s) occured:\n"
         
-        IFS=':' 
+        IFS='|' 
         for wa in ${repo_warnings[$repoName]}
         do
             ret="$ret  - $wa\n"
@@ -388,7 +360,7 @@ function handle_repo(){
     fi
     
     # Check back to the old hash/branch if any
-    if [ "$oldBranch" != "" ]; then
+    if [ "$oldBranch" != "" ] && [ ${cfg[DIFFERENT_BRANCH_FIX]} -ne 1 ]; then
         info "Checking back to $oldBranch"
         (cdgit && git checkout "$oldBranch")
     fi
@@ -443,6 +415,8 @@ do
     
     
     if [ "$errstr$warnstr" != "" ];then
+        info "There were warnings or errors"
+        
         declare -A cfg
         read_config "$c"
         
@@ -455,7 +429,7 @@ do
         if [ "${cfg[REPORT_TO]}" != "" ] && [ "$MAILER" != "" ]; then
             info "Reporting via email"
             
-            echo -e "Subject: git-puller reporting for '$repoName'\r\nFrom:git-puller <Do.Not.Reply@git-puller.com>\r\nTo:${cfg[REPORT_TO]}\n\r$msg" | $MAILER "${cfg[REPORT_TO]}"
+            $(echo -e "Subject: git-puller reporting for '$repoName'\nFrom: git-puller <Do.Not.Reply@gitpuller.com>\nTo:${cfg[REPORT_TO]}\n$msg" | "${MAILER[@]}" "${cfg[REPORT_TO]}")
         fi
     fi
     

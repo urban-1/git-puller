@@ -28,13 +28,13 @@ echo -e "\n\n 1. --- TEST CREATE ------------------------"
 
 echo -e "\n\n 2. --- DETACHED HEAD DENY -----------------"
 (cd $RL && git checkout HEAD^1)
+sed -i 's/ALLOW_DETACHED_HEAD=1/ALLOW_DETACHED_HEAD=0/g' ./test/tmp-repo.conf
 ./puller.sh -e -c ./test
+sed -i 's/ALLOW_DETACHED_HEAD=0/ALLOW_DETACHED_HEAD=1/g' ./test/tmp-repo.conf
 
 
 echo -e "\n\n 3. --- DETACHED HEAD ALLOW ----------------"
-sed -i 's/ALLOW_DETACHED_HEAD=0/ALLOW_DETACHED_HEAD=1/g' ./test/tmp-repo.conf
 ./puller.sh -e -c ./test
-sed -i 's/ALLOW_DETACHED_HEAD=1/ALLOW_DETACHED_HEAD=0/g' ./test/tmp-repo.conf
 (cd $RL && git checkout master)
 
 
@@ -91,12 +91,13 @@ echo -e "\n\n 11. --- WE ARE AHEAD (REMOTE ROLLBACK) -------------"
 
 #
 # The following always last... 
+# Also, send email!
 #
 echo -e "\n\n 100. --- FAILED MERGE --------------------------------"
 sed -i 's/AHEAD_POLICY="rollback"/AHEAD_POLICY="push"/g' ./test/tmp-repo.conf
 (cd $RR && echo "TEST100" > f15 && git add ./f15 && git commit -a -m "100th Commit - master")
 (cd $RL && echo "TEST100.1" > f15 && git add ./f15 && git commit -a -m "100th Commit - slave")
-./puller.sh -e -c ./test
+./puller.sh -c ./test
 sed -i 's/AHEAD_POLICY="push"/AHEAD_POLICY="rollback"/g' ./test/tmp-repo.conf
 
 exit 0

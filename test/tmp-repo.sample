@@ -1,3 +1,4 @@
+#!/bin/bash
 # Local working tree
 LOCAL_TREE="/tmp/tmp-repo"
 
@@ -33,14 +34,14 @@ AHEAD_POLICY="rollback"
 # Allow the local repo to be in different branch (still do the job)
 ALLOW_DIFFERENT_BRANCH=1
 
+# Allow detached head. This usually means that someone has manually rolled to a
+# specific version...
+ALLOW_DETACHED_HEAD=1
+
 # If true, checkout LOCAL_BRANCH after updating.
 # If false, the LOCAL_BRANCH will be updated but the repo will be left in the
 # current branch
-DIFFERENT_BRANCH_FIX=1
-
-# Allow detached head. This usually means that someone has manually rolled to a
-# specific version...
-ALLOW_DETACHED_HEAD=0
+DIFFERENT_BRANCH_FIX=0
 
 # A script to run when everything has completed
 POST_SUCCESS=./test/sample-post-puller.sh

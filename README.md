@@ -93,10 +93,11 @@ repository. Default 0
 
 #### AHEAD_POLICY
 
-[`"push"` | `"rollback"`]. This has meaning only when ALLOW_AHEAD is 1. If set to 
-"push", `git-puller` will: (1) fetch, (2) merge and (3) push. If set to rollback, it will:
-(1) create a new branch named "rollback-<date/time>", (2) delete LOCAL_BRANCH
-and (3) Re-Create LOCAL_BRANCH on the REMOTE_BRANCH hash/commit. Default ""
+`[push|rollback]`. This has meaning only when ALLOW_AHEAD is 1. 
+
+- If set to "push", `git-puller` will: (1) fetch, (2) merge and (3) push.
+- If set to rollback, it will: (1) create a new branch named `rollback-<date/time>`,
+     (2) delete `LOCAL_BRANCH` and (3) Re-Create `LOCAL_BRANCH` on the `REMOTE_BRANCH` hash/commit. Default ""
 
 #### ALLOW_DIFFERENT_BRANCH
 

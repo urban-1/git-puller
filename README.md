@@ -103,9 +103,12 @@ repository. Default 0
 
 `[push|rollback]`. This has meaning only when ALLOW_AHEAD is 1. 
 
-- If set to "push", `git-puller` will: (1) fetch, (2) merge and (3) push.
+- If set to "push", `git-puller` will: (1) fetch, (2) merge and (3) push. (recommended)
 - If set to rollback, it will: (1) create a new branch named `rollback-<date/time>`,
      (2) delete `LOCAL_BRANCH` and (3) Re-Create `LOCAL_BRANCH` on the `REMOTE_BRANCH` hash/commit. Default ""
+
+Whatever you do, if you plan to edit on the target tree, *do not set this to "rollback"*.
+
 
 #### ALLOW_DIFFERENT_BRANCH
 
@@ -120,7 +123,7 @@ checks out a tag. Default 0
 #### DIFFERENT_BRANCH_FIX
 
 `[0|1]` If 1, `git-puller` will leave the tree at the LOCAL_BRANCH, else it will checkout the previous HEAD.
-Setting this to 1 means that the local repo cannot be forced to another version or branch - not recommended
+Setting this to 1 means that the local repo cannot be forced to another version or branch - **not recommended**
 
 #### POST_SUCCESS
 

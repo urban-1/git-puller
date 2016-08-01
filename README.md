@@ -47,6 +47,14 @@ Additionally, `git-puller` has the following features:
 
 ## Configuration  ##
 
+### `git-puller` ###
+
+Copy the `puller-config.sh.sample` to `puller-config.sh` and edit it to fit your needs. To options are:
+
+TODO: :)
+
+### Repositories ###
+
 `git-puller` will read every file in the configuration directory that ends with
 `.conf`. Therefore, if you need to disable a repo, change or remove the extension.
 

@@ -52,7 +52,70 @@ Additionally, `git-puller` has the following features:
 
 Now, each configuration file can have the following:
 
-TODO: :) See .sample
+#### LOCAL_TREE
+
+Path to local tree. Default is "".
+
+#### REMOTE_URI
+
+Complete URI of the remote. This will only be used when cloning for the first time. Default is ""
+
+#### REMOTE_NAME
+
+Name of the remote we are tracking. Default "origin"
+
+#### REMOTE_BRANCH
+
+Name of the remote branch we are tracking. Default "master"
+
+#### LOCAL_BRANCH
+
+Name of the local branch. Default "master"
+
+#### REPORT_TO
+
+A string of emails as expected by sendmail `To:` header. These people will be
+notified for errors and warnings. If empty, not emails will be sent. Default ""
+
+#### ALLOW_DIRTY
+
+`[0|1]` If 1 (==True) we allow the local tree to be dirty which means that there are uncommitted
+changes. In this case `git-puller` will stash them.
+
+#### ALLOW_UNTRACKED
+
+`[0|1]` If 1, we allow the local tree to have new files that have not been added to the
+repository. Default 0
+
+#### ALLOW_AHEAD
+
+`[0|1]` If 1, we allow the local repository to be ahead of the remote. Default 0
+
+#### AHEAD_POLICY
+
+[`"push"` | `"rollback"`]. This has meaning only when ALLOW_AHEAD is 1. If set to 
+"push", `git-puller` will: (1) fetch, (2) merge and (3) push. If set to rollback, it will:
+(1) create a new branch named "rollback-<date/time>", (2) delete LOCAL_BRANCH
+and (3) Re-Create LOCAL_BRANCH on the REMOTE_BRANCH hash/commit. Default ""
+
+#### ALLOW_DIFFERENT_BRANCH
+
+`[0|1]` Allow the local tree to be on a different branch. This can happen if someone 
+has manually checked out a feature branch. Default 0
+
+#### ALLOW_DETACHED_HEAD
+
+`[0|1]` Allow the local tree to have detached HEAD. Usually happens when one manually 
+checks out a tag. Default 0
+
+#### DIFFERENT_BRANCH_FIX
+
+`[0|1]` If 1, `git-puller` will leave the tree at the LOCAL_BRANCH, else it will checkout the previous HEAD.
+Setting this to 1 means that the local repo cannot be forced to another version or branch - not recommended
+
+#### POST_SUCCESS
+
+Path to a script/executable to be invoked once everything has finished successfully
 
 ## DISCLAIMER ##
 

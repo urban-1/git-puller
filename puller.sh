@@ -340,8 +340,10 @@ function handle_repo(){
     info "Your hash atm is: $currentHash"
     # This warning indicates when our local repo changed. It is not really a 
     # warning, but we need this in the log file...
-    warn "Merging"
-    (cdgit && git merge "$remoteFull" -m "git-puller merging!")
+    if  [ $behind -gt 0 ]; then
+        warn "Merging $repoName"
+        (cdgit && git merge "$remoteFull" -m "git-puller merging!")
+    fi
     rc=$?
     if [ $rc -ne 0 ]; then
         rerror $repoName "Merging failed ... reseting HARD to previous HASH"

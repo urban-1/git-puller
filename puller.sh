@@ -81,10 +81,10 @@ function clean_repo_vars(){
 }
 
 function git_current_brach(){
-    branch_name="$(git symbolic-ref HEAD 2>/dev/null)" || \
+    branch_name="$(git symbolic-ref --short HEAD 2>/dev/null)" || \
         branch_name="(detached)"     # detached HEAD
         
-    echo ${branch_name##refs/heads/}
+    echo ${branch_name}
     
 }
 

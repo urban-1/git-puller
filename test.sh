@@ -66,8 +66,9 @@ sed -i 's/ALLOW_DIRTY=1/ALLOW_DIRTY=0/g' ./test/tmp-repo.conf
 
 
 echo -e "\n\n 9. --- NEW FILES ON REMOTE --------------------------"
+# Allow email to test merge ones
 (cd $RR && echo "TEST4" > f4 && git add ./f4 && git commit -a -m "4th Commit")
-./puller.sh -e -c ./test
+./puller.sh -c ./test
 
 
 echo -e "\n\n 10. --- WE ARE AHEAD (PUSH) -------------------------"

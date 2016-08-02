@@ -17,6 +17,9 @@ LOCAL_BRANCH=""
 # Comma separate list of users to email...
 REPORT_TO=""
 
+# Get an email when a merge happened
+MERGE_NOTIFICATIONS=1
+
 # Stash local changes
 ALLOW_DIRTY=0
 

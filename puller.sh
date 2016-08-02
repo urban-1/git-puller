@@ -33,7 +33,7 @@ function prt(){
     esac
     
     if [ $LOG_LEVEL -le $1 ]; then
-        printf "%19s %6s %s\n" "`date +"%d/%m/%Y %H:%M:%S"`" $lvl "$2" 1>&2
+        printf "%19s %6s %s\n" "`date +"$DATE_FORMAT"`" $lvl "$2" 1>&2
     fi
     
 }
@@ -169,6 +169,41 @@ function warn_to_bullet(){
     fi
     
     echo -en "$ret"
+}
+
+
+#
+# Send out an email
+#
+function send_email(){
+    mailType=$1
+    repoName=$2
+    to=$3
+    msg=$4
+    
+    # Check type: set subject and return if email type is suppressed
+    subject="git-puller reporting for '$repoName'"
+    if [ "$mailType" == "errors" ]; then
+        if [ $SEND_ERROR_MAILS -ne 1 ]; then
+            info "Not sending ERROR emails"
+            return
+        fi
+        subject="git-puller reporting errors/warnings for '$repoName'"
+    elif [ "$mailType" == "merge" ]; then
+        if [ $SEND_MERGE_MAILS -ne 1 ]; then
+            info "Not sending MERGE emails"
+            return
+        fi
+        subject="git-puller reporting merge for '$repoName'"
+    fi
+    
+    cc=""
+    if [ "$DEV_TEAM_MAIL" != "" ]; then
+        cc="\nCc: $DEV_TEAM_MAIL"
+    fi
+    
+    info "Sending email to $to of type '$mailType'"
+    $(echo -e "Subject: $subject\nFrom: $MAIL_FROM\nTo:$to$cc\n$msg" | "${MAILER[@]}" "$to")
 }
 
 function handle_repo(){
@@ -343,15 +378,25 @@ function handle_repo(){
     if  [ $behind -gt 0 ]; then
         warn "Merging $repoName"
         (cdgit && git merge "$remoteFull" -m "git-puller merging!")
+        rc=$?
+        if [ $rc -ne 0 ]; then
+            rerror $repoName "Merging failed ... reseting HARD to previous HASH"
+            (cdgit && git merge --abort)
+            # The following is the same!
+            # (cdgit && git reset --hard $currentHash)
+            return
+        fi
+        
+        
+        # If we merged someting (behind>0) and the repo configuration
+        # requests email updates, send
+        if [ ${cfg[MERGE_NOTIFICATIONS]} -eq 1 ]; then
+                # Successful merge with content
+                msg="\nSuccessful merge at $(date +"$DATE_FORMAT") on $(hostname)${cfg[LOCAL_TREE]} for branch '${cfg[LOCAL_BRANCH]}'\n"
+                send_email "merge" "$repoName" "${cfg[REPORT_TO]}" "$msg"
+        fi
     fi
-    rc=$?
-    if [ $rc -ne 0 ]; then
-        rerror $repoName "Merging failed ... reseting HARD to previous HASH"
-        (cdgit && git merge --abort)
-        # The following is the same!
-        # (cdgit && git reset --hard $currentHash)
-        return
-    fi
+    
     
     
     #
@@ -432,7 +477,7 @@ do
         if [ "$branch" == "" ]; then
             branch="master"
         fi
-        msg="\nMessage from git-puller: While running for $(hostname)${cfg[LOCAL_TREE]}, branch '$branch'\n\n"
+        msg="\nMessage from git-puller: While running for $(hostname):${cfg[LOCAL_TREE]}, branch '$branch'\n\n"
     
         if [ "$errstr" != "" ]; then
             msg="$msg$errstr\n\n"
@@ -444,9 +489,8 @@ do
         
         
         if [ "${cfg[REPORT_TO]}" != "" ] && [ "$MAILER" != "" ]; then
-            info "Reporting via email"
-            
-            $(echo -e "Subject: git-puller reporting for '$repoName'\nFrom: git-puller <Do.Not.Reply@gitpuller.com>\nTo:${cfg[REPORT_TO]}\n$msg" | "${MAILER[@]}" "${cfg[REPORT_TO]}")
+            # Send email type=errors
+            send_email "errors" "$repoName" "${cfg[REPORT_TO]}" "$msg"
         fi
     fi
     

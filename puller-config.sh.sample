@@ -8,13 +8,17 @@
 # MAILER=/usr/sbin/sendmail
 MAILER=(/usr/sbin/sendmail "-C" ~/.ssmtp.conf)
 
-# False to stop sending emails to the dev team
-SEND_UPDATE_MAILS=1
+# Which "from" name/address to use whens sending out emails
+MAIL_FROM="git-puller <Do.Not.Reply@gitpuller.com>"
 
-# False to stop sending ERROR mails to the dev team
+# False to stop sending merge emails
+SEND_MERGE_MAILS=1
+
+# False to stop sending error/warning mails
 SEND_ERROR_MAILS=1
 
 # The team maintaining this script to receive usage/success/failure reports
+# This will be used in CC if defined
 DEV_TEAM_MAIL=""
 
 # How to log date?

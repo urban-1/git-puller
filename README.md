@@ -47,11 +47,49 @@ Additionally, `git-puller` has the following features:
 
 ## Configuration  ##
 
-### `git-puller` ###
+Configuration of `git-puller` is two-fold:
+
+1. The utility configuration: Global options
+2. The `config` directory which contains `.conf` files. These define repositories to follow
+
+### Global options ###
 
 Copy the `puller-config.sh.sample` to `puller-config.sh` and edit it to fit your needs. To options are:
 
-TODO: :)
+#### - MAILER
+
+A bash array with the mailer commands and arguments, example:
+
+    MAILER=(/usr/sbin/sendmail "-C" ~/.ssmtp.conf)
+    
+#### - MAIL_FROM
+
+The `From:` field to be used when sending out emails. Note that both your mailer configuration 
+and the SMTP provider should allow this to happen.
+
+#### - SEND_MERGE_MAILS
+
+`[0|1]` If 0, it will not send any *merge* notifications for any configured repo. 
+
+#### - SEND_ERROR_MAILS
+
+`[0|1]` If 0, it will not send any *error* notifications for any configured repo. 
+
+#### - DEV_TEAM_MAIL
+
+If provided, this address will be CCed in all mails sent by `git-puller`
+
+#### - DATE_FORMAT
+
+The date format used in email reports and logging
+
+#### - LOG_LEVEL
+
+The default log level if none is provided
+
+#### - KEY_FILE
+
+Key to be used for `git+ssh://` repos when pulling, pushing and cloning
 
 ### Repositories ###
 
@@ -60,50 +98,50 @@ TODO: :)
 
 Now, each configuration file can have the following:
 
-#### LOCAL_TREE
+#### - LOCAL_TREE
 
 Path to local tree. Default is "".
 
-#### REMOTE_URI
+#### - REMOTE_URI
 
 Complete URI of the remote. This will only be used when cloning for the first time. Default is ""
 
-#### REMOTE_NAME
+#### - REMOTE_NAME
 
 Name of the remote we are tracking. Default "origin"
 
-#### REMOTE_BRANCH
+#### - REMOTE_BRANCH
 
 Name of the remote branch we are tracking. Default "master"
 
-#### LOCAL_BRANCH
+#### - LOCAL_BRANCH
 
 Name of the local branch. Default "master"
 
-#### REPORT_TO
+#### - REPORT_TO
 
 A string of emails as expected by sendmail `To:` header. These people will be
 notified for errors and warnings. If empty, not emails will be sent. Default ""
 
-#### MERGE_NOTIFICATIONS
+#### - MERGE_NOTIFICATIONS
 
 `[0|1]` If 1, puller will send update notifications when it merges branches.
 
-#### ALLOW_DIRTY
+#### - ALLOW_DIRTY
 
 `[0|1]` If 1 (==True) we allow the local tree to be dirty which means that there are uncommitted
 changes. In this case `git-puller` will stash them.
 
-#### ALLOW_UNTRACKED
+#### - ALLOW_UNTRACKED
 
 `[0|1]` If 1, we allow the local tree to have new files that have not been added to the
 repository. Default 0
 
-#### ALLOW_AHEAD
+#### - ALLOW_AHEAD
 
 `[0|1]` If 1, we allow the local repository to be ahead of the remote. Default 0
 
-#### AHEAD_POLICY
+#### - AHEAD_POLICY
 
 `[push|rollback]`. This has meaning only when ALLOW_AHEAD is 1. 
 
@@ -114,22 +152,22 @@ repository. Default 0
 Whatever you do, if you plan to edit on the target tree, *do not set this to "rollback"*.
 
 
-#### ALLOW_DIFFERENT_BRANCH
+#### - ALLOW_DIFFERENT_BRANCH
 
 `[0|1]` Allow the local tree to be on a different branch. This can happen if someone 
 has manually checked out a feature branch. Default 0
 
-#### ALLOW_DETACHED_HEAD
+#### - ALLOW_DETACHED_HEAD
 
 `[0|1]` Allow the local tree to have detached HEAD. Usually happens when one manually 
 checks out a tag. Default 0
 
-#### DIFFERENT_BRANCH_FIX
+#### - DIFFERENT_BRANCH_FIX
 
 `[0|1]` If 1, `git-puller` will leave the tree at the LOCAL_BRANCH, else it will checkout the previous HEAD.
 Setting this to 1 means that the local repo cannot be forced to another version or branch - **not recommended**
 
-#### POST_SUCCESS
+#### - POST_SUCCESS
 
 Path to a script/executable to be invoked once everything has finished successfully
 

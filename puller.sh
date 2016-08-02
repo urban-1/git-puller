@@ -458,6 +458,9 @@ if [ ! -d $config ]; then
     exit 1
 fi
 
+# Log heartbeat
+rwarn "HEARTBEAT"
+
 for c in $config/*.conf
 do
     info "Handing repo config '$c'"

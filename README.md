@@ -50,7 +50,7 @@ Additionally, `git-puller` has the following features:
 Configuration of `git-puller` is two-fold:
 
 1. The utility configuration: Global options
-2. The `config` directory which contains `.conf` files. These define repositories to follow
+2. The `config` directory which contains one configuration file per repository that we follow
 
 ### Global options ###
 

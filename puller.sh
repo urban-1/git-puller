@@ -22,13 +22,13 @@ declare -A repo_errors
 declare -A repo_warnings
 
 function prt(){
-    lvl="???"
+    lvl="UNKNOWN"
     
     case $1 in
         10) lvl="DEBUG";;
         20) lvl="INFO";;
         30) lvl="WARN";;
-        40) lvl="ERROR";;
+        42) lvl="ERROR";;
         50) lvl="CRIT";;
     esac
     
@@ -285,7 +285,7 @@ function handle_repo(){
     dirty=$(($added+$uncom))
     if [ $dirty -ne 0 ]; then
         if [ ${cfg[ALLOW_DIRTY]} -ne 1 ]; then
-            rerror $repoName "Your local tree is DIRTY with $uncom uncommited changes and $added new files - and this is not allowed..."
+            rerror "$repoName" "Your local tree is DIRTY with $uncom uncommited changes and $added new files - and this is not allowed..."
             return
         fi
         rwarn $repoName "Dirty local tree with $uncom uncommited changes and $added new files - Stashing"

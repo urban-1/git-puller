@@ -85,6 +85,10 @@ Name of the local branch. Default "master"
 A string of emails as expected by sendmail `To:` header. These people will be
 notified for errors and warnings. If empty, not emails will be sent. Default ""
 
+#### MERGE_NOTIFICATIONS
+
+`[0|1]` If 1, puller will send update notifications when it merges content
+
 #### ALLOW_DIRTY
 
 `[0|1]` If 1 (==True) we allow the local tree to be dirty which means that there are uncommitted

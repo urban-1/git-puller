@@ -16,7 +16,7 @@ DIRNAME=$(readlink -f $(dirname $0))
 export GIT_SSH_COMMAND="ssh -i $KEY_FILE -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 
 # Generic config folder
-config="/etc/git-puller"
+config="/etc/git-puller.d"
 
 declare -A repo_errors
 declare -A repo_warnings

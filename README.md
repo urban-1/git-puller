@@ -104,7 +104,7 @@ Now, each configuration file can have the following:
 
 Path to local tree. Default is "".
 
-##### REMOTE_URI`
+##### `REMOTE_URI`
 
 Complete URI of the remote. This will only be used when cloning for the first time. Default is ""
 
@@ -112,7 +112,7 @@ Complete URI of the remote. This will only be used when cloning for the first ti
 
 Name of the remote we are tracking. Default "origin"
 
-##### REMOTE_BRANCH`
+##### `REMOTE_BRANCH`
 
 Name of the remote branch we are tracking. Default "master"
 

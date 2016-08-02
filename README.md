@@ -87,7 +87,7 @@ notified for errors and warnings. If empty, not emails will be sent. Default ""
 
 #### MERGE_NOTIFICATIONS
 
-`[0|1]` If 1, puller will send update notifications when it merges content
+`[0|1]` If 1, puller will send update notifications when it merges branches.
 
 #### ALLOW_DIRTY
 

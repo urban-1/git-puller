@@ -22,7 +22,7 @@ declare -A repo_errors
 declare -A repo_warnings
 
 function prt(){
-    lvl="UNKNOWN"
+    lvl="L-$1"
     
     case $1 in
         10) lvl="DEBUG";;

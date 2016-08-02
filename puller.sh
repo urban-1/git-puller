@@ -392,7 +392,7 @@ function handle_repo(){
         # requests email updates, send
         if [ ${cfg[MERGE_NOTIFICATIONS]} -eq 1 ]; then
                 # Successful merge with content
-                msg="\nSuccessful merge at $(date +"$DATE_FORMAT") on $(hostname)${cfg[LOCAL_TREE]} for branch '${cfg[LOCAL_BRANCH]}'\n"
+                msg="\nSuccessful merge at $(date +"$DATE_FORMAT") on $(hostname):${cfg[LOCAL_TREE]} for branch '${cfg[LOCAL_BRANCH]}'\n"
                 send_email "merge" "$repoName" "${cfg[REPORT_TO]}" "$msg"
         fi
     fi

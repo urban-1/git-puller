@@ -459,7 +459,7 @@ if [ ! -d $config ]; then
 fi
 
 # Log heartbeat
-rwarn "HEARTBEAT"
+warn "HEARTBEAT"
 
 for c in $config/*.conf
 do

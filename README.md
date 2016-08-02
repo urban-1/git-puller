@@ -31,6 +31,8 @@ Additionally, `git-puller` has the following features:
     in the main repository, notify people for the release or ensure correct
     permissions for other teams/groups to edit
 -   Email notifications for any warnings or errors detected on a per-repo basis
+-   Email notifications when a merge happens successfully
+-   Summary notification for all projects (TODO)
 
 
 ## Usage ##

@@ -306,7 +306,7 @@ function handle_repo(){
             return
         fi
         
-        # Avoid pointless checkout
+        # Avoid pointless checkout if we are on the wrong branch
         if [ $(($ahead + $behind)) -eq 0 ]; then 
             info "Seems you are spot on! ... Just on different branch! Not updating anything"
             return
@@ -350,6 +350,25 @@ function handle_repo(){
         if [ ${cfg[ALLOW_AHEAD]} -ne 1 ]; then
             rerror $repoName "Your local branch is ahead and this is not allowed inconfig"
             return
+        fi
+        
+        # IDEA:
+        # 
+        # Try to detect rollback ... try to be smart:
+        # - Get the current commit hash (local)
+        # - Find all remote branches that contain it
+        # - If at least one remote contains the commit, it is fair to assume
+        #   that remote rolled back. The remote branch containing the commit
+        #   will be our equivalent of "rollback-<dt>"
+        # - If no remote branch contains this commit, assume we are ahead
+        #   with new content which we are going to loose on rollback!
+        currentHash=$(cdgit && git rev-parse --verify HEAD)
+        numRemote=`git branch --no-color --remotes --contains $currentHash | wc -l`
+        
+        if [ $numRemote -gt 0 ]; then
+            info "Rollback detected"
+        else
+            info "We have new changes in the local repo"
         fi
         
         if [ "${cfg[AHEAD_POLICY]}" == "push" ]; then

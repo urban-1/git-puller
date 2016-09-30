@@ -173,6 +173,4 @@ Setting this to 1 means that the local repo cannot be forced to another version 
 
 Path to a script/executable to be invoked once everything has finished successfully
 
-## DISCLAIMER ##
 
-**This has never been used on production and is considered alpha... use at your own risk.**
